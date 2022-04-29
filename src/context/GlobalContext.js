@@ -16,7 +16,6 @@ const GlobalContext = React.createContext({
   setLabels: () => {},
   filteredEvents: [],
   initialLoading: true,
-  // setInitialLoading: () => {},
   showLoading: false,
   setShowLoading: () => {},
   toastMessage: null,

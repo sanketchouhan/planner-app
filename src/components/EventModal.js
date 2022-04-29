@@ -37,70 +37,120 @@ export default function EventModal() {
     selectedEvent ? selectedEvent.label : labelsClasses[0]
   );
 
-  function handleSubmit(e) {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setShowLoading(true);
-    const calenderEvent = {
-      title,
-      description,
-      notes,
-      label: selectedLabel,
-      day: selectedDay.valueOf(),
-      createdBy: user.id,
-    };
-    if (selectedEvent) {
-      updateItem("events", selectedEvent.id, {
+    if (user) {
+      const calenderEvent = {
         title,
         description,
         notes,
         label: selectedLabel,
-      })
-        .then((res) => {
-          dispatchCalEvent({
-            type: "update",
-            payload: { id: selectedEvent.id, ...calenderEvent },
-          });
-          setShowEventModal(false);
+        day: selectedDay.valueOf(),
+        createdBy: user.id,
+      };
+      if (selectedEvent) {
+        updateItem("events", selectedEvent.id, {
+          title,
+          description,
+          notes,
+          label: selectedLabel,
         })
-        .catch((error) => {
-          setToastMessage("Error in updating event. Please try again.");
-        })
-        .finally(() => setShowLoading(false));
+          .then((res) => {
+            dispatchCalEvent({
+              type: "update",
+              payload: { id: selectedEvent.id, ...calenderEvent },
+            });
+            setShowEventModal(false);
+            setToastMessage("Event updated successfully.");
+          })
+          .catch((error) => {
+            setToastMessage("Error in updating event. Please try again.");
+          })
+          .finally(() => setShowLoading(false));
+      } else {
+        addItem("events", calenderEvent)
+          .then((docRef) => {
+            dispatchCalEvent({
+              type: "push",
+              payload: { id: docRef.id, ...calenderEvent },
+            });
+            setShowEventModal(false);
+            setToastMessage("Event added successfully.");
+          })
+          .catch((error) => {
+            setToastMessage("Error in adding event. Please try again.");
+          })
+          .finally(() => setShowLoading(false));
+      }
     } else {
-      addItem("events", calenderEvent)
-        .then((docRef) => {
-          dispatchCalEvent({
-            type: "push",
-            payload: { id: docRef.id, ...calenderEvent },
-          });
-          setShowEventModal(false);
-        })
-        .catch((error) => {
-          setToastMessage("Error in adding event. Please try again.");
-        })
-        .finally(() => setShowLoading(false));
+      const calenderEvent = {
+        id: new Date().valueOf().toString(),
+        title,
+        description,
+        notes,
+        label: selectedLabel,
+        day: selectedDay.valueOf(),
+      };
+      if (selectedEvent) {
+        let events = JSON.parse(localStorage.getItem("local-events"));
+        events.forEach((ev) => {
+          if (ev.id === selectedEvent.id) {
+            ev.title = title;
+            ev.description = description;
+            ev.notes = notes;
+            ev.label = selectedLabel;
+          }
+        });
+        localStorage.setItem("local-events", JSON.stringify(events));
+        dispatchCalEvent({
+          type: "update",
+          payload: { ...calenderEvent, id: selectedEvent.id },
+        });
+        setToastMessage("Event updated successfully.");
+      } else {
+        let events = JSON.parse(localStorage.getItem("local-events"));
+        if (events) events.push(calenderEvent);
+        else events = [calenderEvent];
+        localStorage.setItem("local-events", JSON.stringify(events));
+        dispatchCalEvent({
+          type: "push",
+          payload: { ...calenderEvent },
+        });
+        setToastMessage("Event added successfully.");
+      }
+      setShowEventModal(false);
+      setShowLoading(false);
     }
-  }
+  };
 
-  function handleDelete(e) {
+  const handleDelete = (e) => {
     e.preventDefault();
     setShowLoading(true);
-    deleteItem("events", selectedEvent.id)
-      .then((res) => {
-        dispatchCalEvent({ type: "delete", payload: selectedEvent });
-        setShowEventModal(false);
-      })
-      .catch((error) => {
-        setToastMessage("Error in deleting event. Please try again.");
-      })
-      .finally(() => {
-        setShowLoading(false);
-      });
-  }
+    if (user) {
+      deleteItem("events", selectedEvent.id)
+        .then((res) => {
+          dispatchCalEvent({ type: "delete", payload: selectedEvent });
+          setToastMessage("Event deleted successfully.");
+          setShowEventModal(false);
+        })
+        .catch((error) => {
+          setToastMessage("Error in deleting event. Please try again.");
+        })
+        .finally(() => {
+          setShowLoading(false);
+        });
+    } else {
+      const events = JSON.parse(localStorage.getItem("local-events"));
+      const updatedEvents = events.filter((ev) => ev.id !== selectedEvent.id);
+      localStorage.setItem(JSON.stringify(updatedEvents));
+      setToastMessage("Event deleted successfully.");
+    }
+  };
 
   return (
     <div className="h-screen w-full fixed left-0 top-0 flex justify-center items-center">
-      <form className="bg-white rounded-lg overflow-hidden shadow-2xl w-2/5">
+      <form className="bg-white rounded-lg overflow-hidden shadow-2xl w-11/12 sm:w-9/12 md:w-3/5 lg:w-2/5">
         <header className="bg-gray-200 px-4 py-3 flex justify-between items-center">
           <img src={Image} alt="logo" className="w-7 h-7 mx-1 cursor-pointer" />
           <div className="flex items-center gap-5">

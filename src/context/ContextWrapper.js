@@ -65,6 +65,13 @@ export default function ContextWrapper({ children }) {
     !showEventModal && setSelectedEvent(null);
   }, [showEventModal]);
 
+  React.useEffect(() => {
+    if (!user && !initialLoading) {
+      const events = JSON.parse(localStorage.getItem("local-events"));
+      dispatchCalEvent({ type: "initialize", payload: events ? events : [] });
+    }
+  }, [user, initialLoading]);
+
   React.useEffect(
     () =>
       onAuthStateChanged(auth, (user) => {
@@ -73,8 +80,7 @@ export default function ContextWrapper({ children }) {
             .then((docSnap) => {
               if (docSnap.exists()) {
                 setUser(docSnap.data());
-                setInitialLoading(false);
-                setShowLoading(false);
+                resetApp();
               } else {
                 const _user = {
                   id: user.uid,
@@ -85,28 +91,35 @@ export default function ContextWrapper({ children }) {
                 setItem("users", user.uid, _user)
                   .then((docRef) => {
                     setUser(_user);
-                    setInitialLoading(false);
-                    setShowLoading(false);
+                    resetApp();
                   })
                   .catch((error) => {
-                    setToastMessage("Error in adding user. Please try again.");
+                    setToastMessage("Error in Sign in. Please try again.");
                     setInitialLoading(false);
                     setShowLoading(false);
                   });
               }
             })
             .catch((error) => {
-              setToastMessage("Error in adding user. Please try again.");
+              setToastMessage("Network error. Please try again.");
               setInitialLoading(false);
               setShowLoading(false);
             });
         } else {
           setUser(null);
-          setInitialLoading(false);
+          resetApp();
         }
       }),
     []
   );
+
+  const resetApp = () => {
+    setMonthIndex(dayjs().month());
+    setSelectedDay(dayjs());
+    setSelectedEvent(null);
+    setInitialLoading(false);
+    setShowLoading(false);
+  };
 
   React.useEffect(() => {
     if (user) {
@@ -119,7 +132,7 @@ export default function ContextWrapper({ children }) {
           dispatchCalEvent({ type: "initialize", payload: _payload });
         })
         .catch((error) => {
-          setToastMessage("Error in getting events. Please try again.");
+          setToastMessage("Error in syncing events. Please try again.");
         });
     }
   }, [user]);
@@ -128,7 +141,7 @@ export default function ContextWrapper({ children }) {
     if (toastMessage) {
       setTimeout(() => {
         setToastMessage(null);
-      }, 4000);
+      }, 3000);
     }
   }, [toastMessage]);
 

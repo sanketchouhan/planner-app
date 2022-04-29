@@ -5,14 +5,13 @@ import Sidebar from "./components/Sidebar";
 import Month from "./components/Month";
 import GlobalContext from "./context/GlobalContext";
 import EventModal from "./components/EventModal";
-import Login from "./components/Login";
 import AppLoading from "./components/AppLoading";
 import Loading from "./components/Loading";
+import ToastMessage from "./components/ToastMessage";
 
 function App() {
   const [currentMonth, setCurrentMonth] = React.useState(getMonth());
   const {
-    user,
     monthIndex,
     showEventModal,
     initialLoading,
@@ -28,29 +27,16 @@ function App() {
 
   return (
     <>
-      {toastMessage && (
-        <div
-          className="px-5 py-4 rounded-lg bg-gray-900 bg-opacity-80 text-white font-sans fixed left-2/4 bottom-5 z-50"
-          style={{ transform: "translateX(-50%)" }}
-        >
-          {toastMessage}
-        </div>
-      )}
+      {toastMessage && <ToastMessage toastMessage={toastMessage} />}
       {showLoading && <Loading />}
-      {user ? (
-        <>
-          {showEventModal && <EventModal />}
-          <div className="h-screen flex flex-col font-sans">
-            <CalenderHeader />
-            <div className="flex flex-1">
-              <Sidebar />
-              <Month month={currentMonth} />
-            </div>
-          </div>
-        </>
-      ) : (
-        <Login />
-      )}
+      {showEventModal && <EventModal />}
+      <div className="h-screen w-screen flex flex-col font-sans">
+        <CalenderHeader />
+        <div className="flex flex-1">
+          <Sidebar />
+          <Month month={currentMonth} />
+        </div>
+      </div>
     </>
   );
 }

@@ -5,7 +5,7 @@ import SmallCalender from "./SmallCalender";
 
 export default function Sidebar() {
   return (
-    <aside className="border p-5 w-64">
+    <aside className="border p-5 hidden md:block md:w-56 lg:w-64">
       <CreateEventButton />
       <SmallCalender />
       <Labels />

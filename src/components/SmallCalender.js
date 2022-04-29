@@ -12,13 +12,13 @@ export default function SmallCalender() {
   const { monthIndex, selectedDay, setSelectedDay } =
     React.useContext(GlobalContext);
 
-  function handlePrevMonth() {
+  const handlePrevMonth = () => {
     setCurrentMonthIdx(currentMonthIdx - 1);
-  }
+  };
 
-  function handleNextMonth() {
+  const handleNextMonth = () => {
     setCurrentMonthIdx(currentMonthIdx + 1);
-  }
+  };
 
   React.useEffect(() => {
     setCurrentMonth(getMonth(currentMonthIdx));
